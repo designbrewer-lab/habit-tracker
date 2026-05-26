@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Habit Tracker</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #0a0a0a;
+  --bg2: #111111;
+  --bg3: #1a1a1a;
+  --border: #222222;
+  --border2: #2e2e2e;
+  --text: #f0f0f0;
+  --text2: #888888;
+  --text3: #555555;
+  --accent: #c8f562;
+  --accent2: #9dd43a;
+  --blue: #5b9cf6;
+  --orange: #f59e0b;
+  --red: #ef4444;
+  --green: #22c55e;
+  --purple: #a78bfa;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-display);
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* APP SHELL */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* HEADER */
+.header {
+  padding: calc(var(--safe-top) + 16px) 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.header-left { display: flex; flex-direction: column; gap: 2px; }
+.header-greeting { font-size: 11px; font-family: var(--font-mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
+.header-title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.header-title span { color: var(--accent); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.notif-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; position: relative;
+}
+.notif-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); border: 2px solid var(--bg);
+}
+.day-badge {
+  font-family: var(--font-mono); font-size: 11px;
+  padding: 5px 10px; border-radius: 20px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text2);
+}
+
+/* NAV */
+.nav {
+  display: flex;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-btn {
+  flex: 1; min-width: 70px;
+  padding: 10px 4px 8px;
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text3); background: none; border: none;
+  cursor: pointer; position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: color 0.15s;
+}
+.nav-btn .nav-icon { font-size: 18px; }
+.nav-btn.active { color: var(--accent); }
+.nav-btn.active::after {
+  content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+  height: 2px; background: var(--accent); border-radius: 2px 2px 0 0;
+}
+
+/* SCROLL AREA */
+.screen {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: calc(var(--safe-bottom) + 16px);
+}
+.screen::-webkit-scrollbar { display: none; }
+.screen-inner { padding: 16px; }
+
+/* TODAY SCREEN */
+.today-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.today-date { font-size: 13px; font-family: var(--font-mono); color: var(--text2); }
+.day-type-pill {
+  font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+.pill-yoga { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+.pill-gym { background: rgba(91,156,246,0.15); color: var(--blue); border: 1px solid rgba(91,156,246,0.3); }
+.pill-rest { background: rgba(167,139,250,0.15); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+
+/* PROGRESS RING */
+.progress-section {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 20px;
+}
+.ring-wrap { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--border2); stroke-width: 6; }
+.ring-fill { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+.ring-text {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.ring-pct { font-size: 18px; font-weight: 800; color: var(--accent); line-height: 1; }
+.ring-sub { font-size: 9px; font-family: var(--font-mono); color: var(--text3); margin-top: 2px; }
+.progress-info { flex: 1; }
+.progress-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.progress-sub { font-size: 12px; font-family: var(--font-mono); color: var(--text2); line-height: 1.5; }
+.streak-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 8px; padding: 3px 8px; border-radius: 10px;
+  background: rgba(200,245,98,0.1); border: 1px solid rgba(200,245,98,0.2);
+  font-size: 11px; font-family: var(--font-mono); color: var(--accent);
+}
+
+/* WATER TRACKER */
+.water-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
+}
+.water-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.water-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.water-count { font-family: var(--font-mono); font-size: 12px; color: var(--text2); }
+.water-glasses { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.glass-btn {
+  width: 36px; height: 44px; border-radius: 8px;
+  border: 1.5px solid var(--border2); background: var(--bg3);
+  cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end; padding-bottom: 4px;
+  font-size: 18px; position: relative; overflow: hidden;
+  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.glass-btn.filled { border-color: var(--blue); background: rgba(91,156,246,0.15); }
+.glass-btn.filled::before {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 60%; background: rgba(91,156,246,0.25); border-radius: 0 0 6px 6px;
+}
+.glass-btn span { position: relative; z-index: 1; }
+.water-bar-wrap { position: relative; }
+.water-bar-bg { height: 6px; background: var(--border2); border-radius: 3px; overflow: hidden; }
+.water-bar-fill { height: 100%; background: linear-gradient(90deg, var(--blue), #93c5fd); border-radius: 3px; transition: width 0.4s ease; }
+.water-label { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+/* MEAL TIMELINE */
+.section-label {
+  font-size: 11px; font-family: var(--font-mono); color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 10px; margin-top: 4px;
+}
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.meal-item {
+  display: flex; gap: 12px;
+  padding: 0 0 0 0;
+  position: relative;
+}
+.meal-left {
+  display: flex; flex-direction: column; align-items: center;
+  width: 48px; flex-shrink: 0;
+}
+.meal-time-txt {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text3);
+  white-space: nowrap; padding-top: 14px;
+}
+.meal-line { flex: 1; width: 1px; background: var(--border); margin-top: 4px; min-height: 20px; }
+.meal-dot-wrap { position: relative; }
+.meal-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid var(--border2); background: var(--bg);
+  margin-top: 14px; position: relative; z-index: 1; flex-shrink: 0;
+  transition: all 0.2s;
+}
+.meal-dot.done { background: var(--accent); border-color: var(--accent); }
+.meal-dot.current { background: var(--bg); border-color: var(--accent); box-shadow: 0 0 0 3px rgba(200,245,98,0.2); }
+.meal-content {
+  flex: 1; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 13px;
+  margin-bottom: 8px; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+.meal-content.done { background: var(--bg); border-color: var(--border); opacity: 0.6; }
+.meal-content.current { border-color: var(--accent); background: rgba(200,245,98,0.04); }
+.meal-content-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.meal-name-txt { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.meal-tag {
+  font-size: 9px; font-family: var(--font-mono); font-weight: 500;
+  padding: 2px 7px; border-radius: 8px; white-space: nowrap; flex-shrink: 0;
+}
+.tag-protein { background: rgba(34,197,94,0.15); color: var(--green); }
+.tag-ritual { background: rgba(167,139,250,0.15); color: var(--purple); }
+.tag-carbs { background: rgba(245,158,11,0.15); color: var(--orange); }
+.tag-water { background: rgba(91,156,246,0.15); color: var(--blue); }
+.meal-desc { font-size: 11px; font-family: var(--font-mono); color: var(--text2); margin-top: 4px; line-height: 1.5; }
+.meal-proto { font-size: 10px; font-family: var(--font-mono); color: var(--accent); margin-top: 5px; }
+.meal-check {
+  position: absolute; top: 10px; right: 10px;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid var(--border2); background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer; transition: all 0.15s;
+}
+.meal-check.checked { background: var(--accent); border-color: var(--accent); color: #000; }
+
+/* RULES SCREEN */
+.rules-intro {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
+}
+.rules-intro p { font-size: 12px; font-family: var(--font-mono); color: var(--text2); line-height: 1.6; }
+.rule-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+  cursor: pointer; transition: border-color 0.15s;
+  position: relative; overflow: hidden;
+}
+.rule-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent); border-radius: 3px 0 0 3px;
+  opacity: 0; transition: opacity 0.2s;
+}
+.rule-card.reminded::before { opacity: 1; }
+.rule-num { font-size: 10px; font-family: var(--font-mono); color: var(--text3); margin-bottom: 4px; }
+.rule-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.rule-body { font-size: 12px; font-family: var(--font-mono); color: var(--text2); line-height: 1.6; display: none; }
+.rule-body.open { display: block; }
+.rule-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.rule-remind-btn {
+  font-size: 10px; font-family: var(--font-mono); font-weight: 500;
+  padding: 5px 12px; border-radius: 20px; cursor: pointer;
+  background: rgba(200,245,98,0.1); border: 1px solid rgba(200,245,98,0.2);
+  color: var(--accent); transition: all 0.15s;
+}
+.rule-remind-btn:active { background: rgba(200,245,98,0.2); }
+.rule-chevron { font-size: 12px; color: var(--text3); transition: transform 0.2s; }
+.rule-chevron.open { transform: rotate(180deg); }
+
+/* NOTIFICATIONS SCREEN */
+.notif-section { margin-bottom: 20px; }
+.notif-section-title {
+  font-size: 11px; font-family: var(--font-mono); color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;
+}
+.notif-item {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 13px 14px;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 12px;
+}
+.notif-icon { font-size: 20px; flex-shrink: 0; }
+.notif-info { flex: 1; }
+.notif-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.notif-time { font-size: 11px; font-family: var(--font-mono); color: var(--text2); }
+.toggle-wrap { flex-shrink: 0; }
+.toggle {
+  width: 44px; height: 26px; border-radius: 13px;
+  background: var(--border2); position: relative; cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%; background: #000;
+  transition: transform 0.2s;
+}
+.toggle.on::after { transform: translateX(18px); }
+
+/* PREP SCREEN */
+.prep-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+}
+.prep-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.prep-icon { font-size: 22px; }
+.prep-card-title { font-size: 14px; font-weight: 700; }
+.prep-card-sub { font-size: 11px; font-family: var(--font-mono); color: var(--text2); margin-top: 1px; }
+.prep-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0; border-top: 1px solid var(--border);
+}
+.prep-cb {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 1.5px solid var(--border2); background: var(--bg3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  margin-top: 1px; transition: all 0.15s; font-size: 11px;
+}
+.prep-cb.done { background: var(--accent); border-color: var(--accent); color: #000; }
+.prep-item-text { font-size: 12px; font-family: var(--font-mono); color: var(--text2); line-height: 1.5; flex: 1; }
+.prep-item-text.done { text-decoration: line-through; color: var(--text3); }
+
+/* PERMISSION BANNER */
+.permission-banner {
+  background: rgba(200,245,98,0.08); border: 1px solid rgba(200,245,98,0.25);
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.perm-icon { font-size: 22px; flex-shrink: 0; }
+.perm-text { flex: 1; }
+.perm-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+.perm-sub { font-size: 11px; font-family: var(--font-mono); color: var(--text2); line-height: 1.5; }
+.perm-btn {
+  margin-top: 10px; padding: 8px 16px; border-radius: 20px;
+  background: var(--accent); color: #000; font-family: var(--font-display);
+  font-size: 12px; font-weight: 700; border: none; cursor: pointer;
+  display: inline-block;
+}
+
+/* INSTALL BANNER */
+.install-banner {
+  background: rgba(91,156,246,0.08); border: 1px solid rgba(91,156,246,0.25);
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px;
+}
+.install-title { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.install-steps { font-size: 11px; font-family: var(--font-mono); color: var(--text2); line-height: 1.8; }
+.install-steps span { color: var(--text); font-weight: 500; }
+
+/* SNACKBAR */
+.snackbar {
+  position: fixed; bottom: calc(var(--safe-bottom) + 80px); left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 24px; padding: 10px 20px;
+  font-size: 12px; font-family: var(--font-mono); color: var(--text);
+  opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 100;
+  white-space: nowrap;
+}
+.snackbar.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ANIMATIONS */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.current-pulse { animation: pulse 2s infinite; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { animation: fadeIn 0.3s ease forwards; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-greeting">Day <span id="dayNum">1</span> of 14</div>
+      <div class="header-title">Habit<span>Track</span></div>
+    </div>
+    <div class="header-right">
+      <div class="day-badge" id="dayBadge">MON</div>
+      <div class="notif-btn" onclick="showScreen('notifications')">
+        🔔<div class="notif-dot" id="notifDot" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nav-btn active" onclick="showScreen('today')" id="nav-today">
+      <span class="nav-icon">◉</span>Today
+    </button>
+    <button class="nav-btn" onclick="showScreen('meals')" id="nav-meals">
+      <span class="nav-icon">⊞</span>Meals
+    </button>
+    <button class="nav-btn" onclick="showScreen('prep')" id="nav-prep">
+      <span class="nav-icon">◈</span>Prep
+    </button>
+    <button class="nav-btn" onclick="showScreen('rules')" id="nav-rules">
+      <span class="nav-icon">◐</span>Rules
+    </button>
+    <button class="nav-btn" onclick="showScreen('notifications')" id="nav-notifications">
+      <span class="nav-icon">◎</span>Alerts
+    </button>
+  </div>
+
+  <!-- SCREENS -->
+  <div class="screen" id="screen-today">
+    <div class="screen-inner">
+      <!-- permission banner -->
+      <div class="permission-banner" id="permBanner" style="display:none">
+        <div class="perm-icon">🔔</div>
+        <div class="perm-text">
+          <div class="perm-title">Enable notifications</div>
+          <div class="perm-sub">Get meal reminders, water alerts, and night prep notifications sent directly to your S24 Ultra.</div>
+          <button class="perm-btn" onclick="requestNotifPermission()">Enable Now</button>
+        </div>
+      </div>
+
+      <!-- install banner -->
+      <div class="install-banner" id="installBanner" style="display:none">
+        <div class="install-title">📲 Add to Home Screen</div>
+        <div class="install-steps">
+          1. Tap <span>⋮ Menu</span> in Chrome<br>
+          2. Select <span>"Add to Home screen"</span><br>
+          3. Tap <span>Add</span> — app installs like native
+        </div>
+      </div>
+
+      <!-- today header -->
+      <div class="today-header">
+        <div class="today-date" id="todayDate">—</div>
+        <div class="day-type-pill" id="dayTypePill">—</div>
+      </div>
+
+      <!-- progress ring -->
+      <div class="progress-section">
+        <div class="ring-wrap">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="ring-bg" cx="40" cy="40" r="32"/>
+            <circle class="ring-fill" id="ringFill" cx="40" cy="40" r="32"
+              stroke-dasharray="201" stroke-dashoffset="201"/>
+          </svg>
+          <div class="ring-text">
+            <div class="ring-pct" id="ringPct">0%</div>
+            <div class="ring-sub">done</div>
+          </div>
+        </div>
+        <div class="progress-info">
+          <div class="progress-title" id="progressTitle">Let's start the day</div>
+          <div class="progress-sub" id="progressSub">Complete habits below<br>to track your progress</div>
+          <div class="streak-badge" id="streakBadge">🔥 <span id="streakNum">0</span> day streak</div>
+        </div>
+      </div>
+
+      <!-- water -->
+      <div class="water-card">
+        <div class="water-header">
+          <div class="water-title">💧 Water intake</div>
+          <div class="water-count" id="waterCount">0 / 14 glasses</div>
+        </div>
+        <div class="water-glasses" id="waterGlasses"></div>
+        <div class="water-bar-wrap">
+          <div class="water-bar-bg">
+            <div class="water-bar-fill" id="waterBar" style="width:0%"></div>
+          </div>
+          <div class="water-label">
+            <span>0L</span><span id="waterLabelMid"></span><span>3.5L</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- quick habits -->
+      <div class="section-label">Quick habits</div>
+      <div id="quickHabits"></div>
+
+      <!-- next meal -->
+      <div class="section-label" style="margin-top:16px">Next up</div>
+      <div id="nextMeal"></div>
+    </div>
+  </div>
+
+  <!-- MEALS SCREEN -->
+  <div class="screen" id="screen-meals" style="display:none">
+    <div class="screen-inner">
+      <div class="section-label" id="mealsLabel">Today's meals</div>
+      <div class="timeline" id="mealTimeline"></div>
+    </div>
+  </div>
+
+  <!-- PREP SCREEN -->
+  <div class="screen" id="screen-prep" style="display:none">
+    <div class="screen-inner">
+      <div class="section-label">Tonight's prep for tomorrow</div>
+      <div id="prepCards"></div>
+    </div>
+  </div>
+
+  <!-- RULES SCREEN -->
+  <div class="screen" id="screen-rules" style="display:none">
+    <div class="screen-inner">
+      <div class="rules-intro">
+        <p>8 rules that govern the 2 weeks. Tap any rule to expand. Tap "Send reminder" to push a notification to yourself.</p>
+      </div>
+      <div id="rulesList"></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS SCREEN -->
+  <div class="screen" id="screen-notifications" style="display:none">
+    <div class="screen-inner">
+      <div class="section-label">Notification settings</div>
+      <div id="notifSettings"></div>
+    </div>
+  </div>
+</div>
+
+<div class="snackbar" id="snackbar"></div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────────────────
+
+const RULES = [
+  { num: 1, title: "Salad always before rotis", body: "Eat your cucumber-tomato salad before touching the rotis at every lunch. Fibre from raw vegetables slows glucose absorption — steadier blood sugar, longer satiety, less afternoon crash. Takes 3 extra minutes." },
+  { num: 2, title: "No meal gap longer than 3 hours", body: "Your previous 7.5-hour gap caused muscle breakdown, acidity, and energy crashes. No gap longer than 2.5–3 hours during waking hours. If running late, a banana or handful of chana counts as bridging a meal." },
+  { num: 3, title: "Every meal has a protein anchor", body: "Before you eat anything, ask: where is the protein in this meal? Eggs, paneer, dal, curd, milk, nuts — one of these must be present at every sitting. No exceptions." },
+  { num: 4, title: "Eat slowly — 20 chews per bite", body: "Chewing thoroughly activates salivary amylase, reduces the burden on your stomach, and signals proper fullness. 15–20 min per meal minimum. Set a timer the first week if needed." },
+  { num: 5, title: "Water before meals, not during", body: "Drink 1 glass of water 20 min before each meal. During meals, sip only. Large water intake during meals dilutes digestive enzymes and worsens acidity." },
+  { num: 6, title: "3.5L water distributed across the day", body: "Morning 500ml → Training 750ml → Late morning 500ml → Post-lunch 500ml → Evening 500ml → Post-dinner 250ml. Don't front-load or back-load. Spread it out." },
+  { num: 7, title: "Sleep is non-negotiable", body: "7 hours minimum every night. Muscle is built during sleep, not training. Growth hormone peaks 1–3am in deep sleep. Under-sleeping reduces testosterone by 15–20% and raises cortisol." },
+  { num: 8, title: "Track one thing daily", body: "Don't track calories. Track just one thing: did you hit your protein today? Eggs ✓ paneer at lunch ✓ dal ✓ curd ✓ milk twice ✓ — you're at target. Simple accountability, no app needed." }
+];
+
+const MEALS = {
+  yoga: [
+    { time: "5:45am", name: "Wake-up ritual", desc: "2 glasses warm water + lemon · soaked almonds + walnuts · no phone 20 min", protein: "4g", tag: "ritual", emoji: "🌅" },
+    { time: "6:00am", name: "Pre-yoga snack", desc: "1 medium banana", protein: "1g", tag: "carbs", emoji: "🍌" },
+    { time: "6:15am", name: "Yoga session", desc: "Cult Ghatkopar · 50 min · 500ml water", protein: "—", tag: "ritual", emoji: "🧘" },
+    { time: "7:30am", name: "Post-yoga eggs", desc: "2 whole eggs (outside near Ghatkopar) + 250ml milk", protein: "26g", tag: "protein", emoji: "🥚" },
+    { time: "10:00am", name: "Mid-morning breakfast", desc: "2 jowar/rice bhakri + 1 katori sabzi + 1 small katori curd", protein: "18g", tag: "carbs", emoji: "🫓" },
+    { time: "1:30pm", name: "Lunch", desc: "3–4 rotis + 150g paneer sabzi + 1 katori dal + 1 katori curd + salad first", protein: "46g", tag: "protein", emoji: "🍱" },
+    { time: "4:30pm", name: "Evening snack", desc: "Sprouted moong chaat / roasted chana + banana / makhana + cashews", protein: "9g", tag: "protein", emoji: "🌱" },
+    { time: "8:30pm", name: "Dinner", desc: "Mon: 2 dosa + sambar · Wed: 2 uttapam + sambar + curd · Fri: khichdi + ghee + curd", protein: "20g", tag: "carbs", emoji: "🍽️" },
+    { time: "10:30pm", name: "Bedtime ritual", desc: "250ml warm milk + turmeric · soak tomorrow's almonds + walnuts", protein: "8g", tag: "ritual", emoji: "🌙" }
+  ],
+  gym: [
+    { time: "6:00am", name: "Wake-up ritual", desc: "2 glasses warm water + lemon · soaked almonds + walnuts · sunlight 5 min", protein: "4g", tag: "ritual", emoji: "🌅" },
+    { time: "6:30am", name: "Pre-workout meal", desc: "1 large banana + 1.5 tbsp peanut butter + 250ml milk", protein: "14g", tag: "carbs", emoji: "🍌" },
+    { time: "8:00am", name: "PT + Gym session", desc: "60–75 min · 750ml–1L water · electrolyte if heavy sweat", protein: "—", tag: "ritual", emoji: "🏋️" },
+    { time: "9:30am", name: "Post-workout eggs", desc: "2 whole eggs (near gym) + 250ml milk · eat within 45 min", protein: "26g", tag: "protein", emoji: "🥚" },
+    { time: "11:00am", name: "Mid-morning carb refuel", desc: "2 jowar/rice bhakri + 1 katori sabzi + 1 small katori curd", protein: "15g", tag: "carbs", emoji: "🫓" },
+    { time: "1:30pm", name: "Lunch — max protein", desc: "3–4 rotis + 150g paneer sabzi + 1 katori dal + 1 katori curd + salad first", protein: "50g", tag: "protein", emoji: "🍱" },
+    { time: "4:30pm", name: "Evening snack", desc: "Sprouted moong preferred on gym days · or chana + banana", protein: "10g", tag: "protein", emoji: "🌱" },
+    { time: "8:30pm", name: "Dinner", desc: "Tue: khichdi + ghee + curd · Thu: 2 dosa + sambar · Sat: 2 uttapam + sambar + curd", protein: "20g", tag: "carbs", emoji: "🍽️" },
+    { time: "10:30pm", name: "Bedtime ritual", desc: "250ml warm milk + turmeric · soak tomorrow's almonds + walnuts · sleep by 11pm", protein: "8g", tag: "ritual", emoji: "🌙" }
+  ],
+  rest: [
+    { time: "7:00am", name: "Wake-up ritual", desc: "2 glasses warm water + lemon · soaked almonds + walnuts · slow morning", protein: "4g", tag: "ritual", emoji: "🌅" },
+    { time: "8:00am", name: "Breakfast", desc: "2 jowar/rice bhakri + 1 katori sabzi + 250ml milk + papaya/watermelon", protein: "20g", tag: "carbs", emoji: "🫓" },
+    { time: "Pre-ride", name: "Pre-riding snack", desc: "1 banana + 5 dates · 30–45 min before session", protein: "2g", tag: "carbs", emoji: "🐎" },
+    { time: "1:00pm", name: "Lunch", desc: "3 rotis + 150g paneer sabzi + 1 katori dal + 1 katori curd + salad", protein: "42g", tag: "protein", emoji: "🍱" },
+    { time: "4:30pm", name: "Evening snack", desc: "1 bowl seasonal fruit (papaya/watermelon) + 10 cashews or almonds", protein: "5g", tag: "carbs", emoji: "🍉" },
+    { time: "8:00pm", name: "Dinner — earliest of week", desc: "Khichdi + 1 tsp ghee + 1 katori curd · sleep early tonight", protein: "20g", tag: "carbs", emoji: "🍽️" },
+    { time: "10:00pm", name: "Bedtime ritual", desc: "250ml warm milk + turmeric · soak nuts · sleep by 10:30pm", protein: "8g", tag: "ritual", emoji: "🌙" }
+  ]
+};
+
+const PREP_TASKS = {
+  yoga: [
+    { emoji: "🌰", title: "Soak almonds + walnuts", desc: "5 almonds + 2 walnuts in a small bowl of water. Ready for 5:45am." },
+    { emoji: "🍌", title: "Keep a banana accessible", desc: "On the counter — needed at 6:00am before leaving for yoga." },
+    { emoji: "💧", title: "Fill your 500ml water bottle", desc: "For the yoga session. Keep it by the door." },
+    { emoji: "👕", title: "Lay out yoga clothes", desc: "Saves 5 min of fumbling at 5:45am." },
+    { emoji: "🏃", title: "Plan egg pickup route", desc: "Identify the stall near Ghatkopar — needed post-session at 7:30am." }
+  ],
+  gym: [
+    { emoji: "🌰", title: "Soak almonds + walnuts", desc: "5 almonds + 2 walnuts in a small bowl of water. Ready for 6:00am." },
+    { emoji: "🥜", title: "Keep peanut butter + banana ready", desc: "Pre-workout meal at 6:30am. Peanut butter jar out, banana on counter." },
+    { emoji: "💧", title: "Fill 1L water bottle + pack electrolyte", desc: "Enerzal or ORS sachet in your bag. For the gym session." },
+    { emoji: "🏋️", title: "Pack gym bag tonight", desc: "Clothes, towel, earphones, bottle. Don't scramble in the morning." },
+    { emoji: "🥚", title: "Confirm egg stall is open", desc: "Needed at 9:30am post-workout. Have curd at home as backup." },
+    { emoji: "🍚", title: "Tell family: 150g paneer at lunch", desc: "Ask them to plan paneer sabzi for 1:30pm. Non-negotiable today." }
+  ],
+  rest: [
+    { emoji: "🌰", title: "Soak almonds + walnuts", desc: "5 almonds + 2 walnuts in water. Slower morning — no rush." },
+    { emoji: "🍌", title: "Keep banana + dates for pre-ride", desc: "5 dates + 1 banana. Needed 30–45 min before horseback session." },
+    { emoji: "💤", title: "Set sleep alarm for 10:30pm", desc: "Sunday is the most important sleep of the week. Protect it." },
+    { emoji: "🥗", title: "Prep sprouts for the week", desc: "Soak 100g whole moong tonight. Drain and tie in cloth Sunday morning for mid-week sprouts." }
+  ]
+};
+
+const NOTIF_SETTINGS = [
+  { id: "wake", emoji: "🌅", title: "Wake-up reminder", time: "5:45am on yoga days / 6:00am on gym days" },
+  { id: "preworkout", emoji: "⚡", title: "Pre-workout / pre-yoga fuel", time: "15 min before session" },
+  { id: "postworkout", emoji: "🥚", title: "Post-workout protein window", time: "45 min countdown after session" },
+  { id: "midmorning", emoji: "🫓", title: "Mid-morning meal", time: "10:00am yoga · 11:00am gym" },
+  { id: "lunch", emoji: "🍱", title: "Lunch time", time: "1:15pm reminder — eat by 1:30pm" },
+  { id: "water1", emoji: "💧", title: "Water check — morning", time: "10:00am if under 3 glasses" },
+  { id: "water2", emoji: "💧", title: "Water check — afternoon", time: "3:00pm if under 7 glasses" },
+  { id: "snack", emoji: "🌱", title: "Evening snack", time: "4:15pm" },
+  { id: "dinner", emoji: "🍽️", title: "Dinner reminder", time: "8:00pm — eat within 30 min" },
+  { id: "bedtime", emoji: "🌙", title: "Bedtime ritual", time: "10:15pm" },
+  { id: "prep", emoji: "◈", title: "Night prep reminder", time: "9:30pm — soak nuts, pack bag" },
+  { id: "rule", emoji: "◐", title: "Daily rule reminder", time: "7:00am — random rule each day" }
+];
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+
+const STATE_KEY = 'habittrack_state';
+let state = loadState();
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(STATE_KEY);
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return {
+    startDate: null,
+    waterToday: 0,
+    mealsChecked: {},
+    quickHabits: {},
+    prepChecked: {},
+    notifEnabled: {},
+    streak: 0,
+    lastCheckedDate: null
+  };
+}
+
+function saveState() {
+  try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+// ─── DATE HELPERS ──────────────────────────────────────────────────────────
+
+function getTodayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function getDayType(date) {
+  const d = date || new Date();
+  const day = d.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  if (day === 0) return 'rest';
+  if (day === 1 || day === 3 || day === 5) return 'yoga';
+  return 'gym';
+}
+
+function getDayNum() {
+  if (!state.startDate) return 1;
+  const start = new Date(state.startDate);
+  const now = new Date();
+  const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+  return Math.min(diff + 1, 14);
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+
+function init() {
+  if (!state.startDate) {
+    state.startDate = getTodayStr();
+    saveState();
+  }
+
+  // Reset daily state if new day
+  const today = getTodayStr();
+  if (state.lastCheckedDate !== today) {
+    if (state.lastCheckedDate) {
+      // Check if yesterday was completed for streak
+      const prevDone = state._prevDayComplete;
+      if (prevDone) state.streak = (state.streak || 0) + 1;
+      else state.streak = 0;
+    }
+    state.waterToday = 0;
+    state.mealsChecked = {};
+    state.quickHabits = {};
+    state.prepChecked = {};
+    state._prevDayComplete = false;
+    state.lastCheckedDate = today;
+    saveState();
+  }
+
+  const now = new Date();
+  const dayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  document.getElementById('dayBadge').textContent = dayNames[now.getDay()];
+  document.getElementById('dayNum').textContent = getDayNum();
+  document.getElementById('todayDate').textContent = formatDate(now);
+
+  const dayType = getDayType();
+  const pill = document.getElementById('dayTypePill');
+  if (dayType === 'yoga') { pill.textContent = 'YOGA DAY'; pill.className = 'day-type-pill pill-yoga'; }
+  else if (dayType === 'gym') { pill.textContent = 'GYM DAY'; pill.className = 'day-type-pill pill-gym'; }
+  else { pill.textContent = 'SUNDAY — RIDING'; pill.className = 'day-type-pill pill-rest'; }
+
+  renderWater();
+  renderQuickHabits();
+  renderNextMeal();
+  renderMealTimeline();
+  renderPrepCards();
+  renderRules();
+  renderNotifSettings();
+  updateProgress();
+  checkNotifPermission();
+  checkInstallPrompt();
+  scheduleAllNotifications();
+}
+
+// ─── WATER ─────────────────────────────────────────────────────────────────
+
+function renderWater() {
+  const total = 14;
+  const filled = state.waterToday || 0;
+  document.getElementById('waterCount').textContent = `${filled} / ${total} glasses`;
+  const pct = Math.round((filled / total) * 100);
+  document.getElementById('waterBar').style.width = pct + '%';
+  const litres = (filled * 0.25).toFixed(1);
+  document.getElementById('waterLabelMid').textContent = litres + 'L so far';
+
+  const wrap = document.getElementById('waterGlasses');
+  wrap.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'glass-btn' + (i < filled ? ' filled' : '');
+    btn.innerHTML = `<span>${i < filled ? '💧' : '○'}</span>`;
+    btn.onclick = () => toggleGlass(i);
+    wrap.appendChild(btn);
+  }
+}
+
+function toggleGlass(i) {
+  const filled = state.waterToday || 0;
+  if (i < filled) { state.waterToday = i; }
+  else { state.waterToday = i + 1; }
+  saveState();
+  renderWater();
+  updateProgress();
+  if (state.waterToday === 14) showSnackbar('💧 3.5L done! Great work today.');
+}
+
+// ─── QUICK HABITS ──────────────────────────────────────────────────────────
+
+const QUICK_HABITS = [
+  { id: 'lemonwater', emoji: '🍋', label: 'Warm lemon water' },
+  { id: 'nuts', emoji: '🌰', label: 'Soaked nuts eaten' },
+  { id: 'sunlight', emoji: '☀️', label: '5 min sunlight' },
+  { id: 'nophone', emoji: '📵', label: 'No phone 20 min' },
+  { id: 'sloweat', emoji: '🍽️', label: 'Ate slowly' },
+  { id: 'sleep7', emoji: '💤', label: '7h sleep last night' }
+];
+
+function renderQuickHabits() {
+  const wrap = document.getElementById('quickHabits');
+  wrap.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0';
+
+  QUICK_HABITS.forEach(h => {
+    const done = state.quickHabits[h.id];
+    const card = document.createElement('div');
+    card.style.cssText = `background:var(--bg2);border:1px solid ${done ? 'var(--accent)' : 'var(--border)'};border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.15s;${done ? 'opacity:0.7' : ''}`;
+    card.innerHTML = `<span style="font-size:18px">${h.emoji}</span><span style="font-size:12px;font-weight:600;line-height:1.3;flex:1">${h.label}</span>${done ? '<span style="color:var(--accent);font-size:14px">✓</span>' : ''}`;
+    card.onclick = () => { state.quickHabits[h.id] = !done; saveState(); renderQuickHabits(); updateProgress(); if(!done) showSnackbar(`${h.emoji} ${h.label} logged!`); };
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+}
+
+// ─── NEXT MEAL ─────────────────────────────────────────────────────────────
+
+function renderNextMeal() {
+  const dayType = getDayType();
+  const meals = MEALS[dayType];
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+
+  let nextMeal = null;
+  for (const m of meals) {
+    const t = parseTime(m.time);
+    if (t && t > currentMins && !state.mealsChecked[m.name]) { nextMeal = m; break; }
+  }
+  if (!nextMeal) nextMeal = meals[meals.length - 1];
+
+  const wrap = document.getElementById('nextMeal');
+  wrap.innerHTML = '';
+  const card = document.createElement('div');
+  card.style.cssText = 'background:rgba(200,245,98,0.05);border:1px solid rgba(200,245,98,0.25);border-radius:var(--radius);padding:14px 16px;cursor:pointer';
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:28px">${nextMeal.emoji}</span>
+      <div style="flex:1">
+        <div style="font-size:11px;font-family:var(--font-mono);color:var(--accent);margin-bottom:2px">${nextMeal.time}</div>
+        <div style="font-size:14px;font-weight:700">${nextMeal.name}</div>
+        <div style="font-size:11px;font-family:var(--font-mono);color:var(--text2);margin-top:3px;line-height:1.5">${nextMeal.desc}</div>
+      </div>
+      ${nextMeal.protein !== '—' ? `<div style="font-size:11px;font-family:var(--font-mono);color:var(--green);background:rgba(34,197,94,0.1);padding:4px 8px;border-radius:8px;border:1px solid rgba(34,197,94,0.2)">${nextMeal.protein}<br><span style="color:var(--text3);font-size:9px">protein</span></div>` : ''}
+    </div>`;
+  card.onclick = () => showScreen('meals');
+  wrap.appendChild(card);
+}
+
+// ─── MEAL TIMELINE ─────────────────────────────────────────────────────────
+
+function parseTime(timeStr) {
+  if (!timeStr || timeStr.includes('Pre-') || timeStr.includes('—')) return null;
+  const m = timeStr.match(/(\d+):(\d+)(am|pm)/i);
+  if (!m) return null;
+  let h = parseInt(m[1]);
+  const min = parseInt(m[2]);
+  const ampm = m[3].toLowerCase();
+  if (ampm === 'pm' && h !== 12) h += 12;
+  if (ampm === 'am' && h === 12) h = 0;
+  return h * 60 + min;
+}
+
+function renderMealTimeline() {
+  const dayType = getDayType();
+  const meals = MEALS[dayType];
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+
+  const label = document.getElementById('mealsLabel');
+  label.textContent = dayType === 'yoga' ? 'Yoga day meals' : dayType === 'gym' ? 'Gym day meals' : 'Sunday meals';
+
+  const tl = document.getElementById('mealTimeline');
+  tl.innerHTML = '';
+
+  meals.forEach((meal, i) => {
+    const mealMins = parseTime(meal.time);
+    const isDone = state.mealsChecked[meal.name];
+    const isCurrent = !isDone && mealMins && mealMins <= currentMins + 30 && mealMins >= currentMins - 60;
+
+    const row = document.createElement('div');
+    row.className = 'meal-item';
+
+    const tagClass = { protein: 'tag-protein', ritual: 'tag-ritual', carbs: 'tag-carbs', water: 'tag-water' }[meal.tag] || 'tag-ritual';
+
+    row.innerHTML = `
+      <div class="meal-left">
+        <div class="meal-time-txt">${meal.time}</div>
+        ${i < meals.length - 1 ? '<div class="meal-line"></div>' : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+        <div class="meal-dot ${isDone ? 'done' : isCurrent ? 'current' + (isCurrent ? ' current-pulse' : '') : ''}"></div>
+      </div>
+      <div class="meal-content ${isDone ? 'done' : isCurrent ? 'current' : ''}" onclick="toggleMeal('${meal.name}', this)">
+        <div class="meal-content-top">
+          <div>
+            <span class="meal-tag ${tagClass}">${meal.tag}</span>
+            <div class="meal-name-txt">${meal.emoji} ${meal.name}</div>
+          </div>
+          ${meal.protein !== '—' ? `<div style="font-size:10px;font-family:var(--font-mono);color:var(--green);text-align:right;flex-shrink:0">${meal.protein}<br><span style="color:var(--text3)">protein</span></div>` : ''}
+        </div>
+        <div class="meal-desc">${meal.desc}</div>
+        <div class="meal-check ${isDone ? 'checked' : ''}" onclick="event.stopPropagation();toggleMeal('${meal.name}', this.parentElement)">
+          ${isDone ? '✓' : ''}
+        </div>
+      </div>`;
+
+    tl.appendChild(row);
+  });
+}
+
+function toggleMeal(name, el) {
+  state.mealsChecked[name] = !state.mealsChecked[name];
+  saveState();
+  renderMealTimeline();
+  renderNextMeal();
+  updateProgress();
+  if (state.mealsChecked[name]) showSnackbar('✓ Meal logged');
+}
+
+// ─── PROGRESS ─────────────────────────────────────────────────────────────
+
+function updateProgress() {
+  const dayType = getDayType();
+  const meals = MEALS[dayType];
+  const totalItems = meals.length + QUICK_HABITS.length + 1; // +1 for water
+  const doneMeals = Object.values(state.mealsChecked).filter(Boolean).length;
+  const doneHabits = Object.values(state.quickHabits).filter(Boolean).length;
+  const waterDone = (state.waterToday || 0) >= 14 ? 1 : 0;
+  const done = doneMeals + doneHabits + waterDone;
+  const pct = Math.round((done / totalItems) * 100);
+
+  const circumference = 201;
+  const offset = circumference - (circumference * pct / 100);
+  document.getElementById('ringFill').style.strokeDashoffset = offset;
+  document.getElementById('ringPct').textContent = pct + '%';
+
+  const titles = ['Let\'s start the day', 'Good start!', 'Halfway there', 'Almost done!', 'Perfect day! 🎉'];
+  const idx = Math.min(Math.floor(pct / 25), 4);
+  document.getElementById('progressTitle').textContent = titles[idx];
+  document.getElementById('progressSub').textContent = `${done} of ${totalItems} habits complete`;
+  document.getElementById('streakNum').textContent = state.streak || 0;
+
+  if (pct === 100) state._prevDayComplete = true;
+  saveState();
+}
+
+// ─── PREP CARDS ────────────────────────────────────────────────────────────
+
+function renderPrepCards() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowType = getDayType(tomorrow);
+  const tasks = PREP_TASKS[tomorrowType];
+  const typeLabels = { yoga: 'Yoga day', gym: 'Gym day', rest: 'Sunday riding' };
+
+  const wrap = document.getElementById('prepCards');
+  wrap.innerHTML = '';
+
+  const intro = document.createElement('div');
+  intro.style.cssText = 'background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px';
+  intro.innerHTML = `<div style="font-size:12px;font-family:var(--font-mono);color:var(--text2);line-height:1.6">Tomorrow is a <strong style="color:var(--text)">${typeLabels[tomorrowType]}</strong>. Complete these tonight before sleeping.</div>`;
+  wrap.appendChild(intro);
+
+  const card = document.createElement('div');
+  card.className = 'prep-card';
+  const header = document.createElement('div');
+  header.className = 'prep-card-header';
+  header.innerHTML = `<div class="prep-icon">◈</div><div><div class="prep-card-title">Tonight's checklist</div><div class="prep-card-sub">Do these before 10:30pm</div></div>`;
+  card.appendChild(header);
+
+  tasks.forEach((task, i) => {
+    const key = `prep_${i}`;
+    const done = state.prepChecked[key];
+    const item = document.createElement('div');
+    item.className = 'prep-item';
+    item.innerHTML = `
+      <div class="prep-cb ${done ? 'done' : ''}" onclick="togglePrep('${key}', this)">${done ? '✓' : ''}</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:2px">${task.emoji} ${task.title}</div>
+        <div class="prep-item-text ${done ? 'done' : ''}">${task.desc}</div>
+      </div>`;
+    card.appendChild(item);
+  });
+  wrap.appendChild(card);
+}
+
+function togglePrep(key, el) {
+  state.prepChecked[key] = !state.prepChecked[key];
+  saveState();
+  el.classList.toggle('done');
+  el.textContent = state.prepChecked[key] ? '✓' : '';
+  const textEl = el.parentElement.querySelector('.prep-item-text');
+  if (textEl) textEl.classList.toggle('done', state.prepChecked[key]);
+  if (state.prepChecked[key]) showSnackbar('◈ Prep task done');
+}
+
+// ─── RULES ─────────────────────────────────────────────────────────────────
+
+function renderRules() {
+  const wrap = document.getElementById('rulesList');
+  wrap.innerHTML = '';
+  RULES.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'rule-card';
+    card.id = `rule-${r.num}`;
+    card.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px" onclick="toggleRule(${r.num})">
+        <div style="flex:1">
+          <div class="rule-num">Rule ${r.num} of 8</div>
+          <div class="rule-title">${r.title}</div>
+        </div>
+        <div class="rule-chevron" id="chevron-${r.num}">▾</div>
+      </div>
+      <div class="rule-body" id="rulebody-${r.num}">${r.body}
+        <div class="rule-footer">
+          <div></div>
+          <button class="rule-remind-btn" onclick="event.stopPropagation();sendRuleReminder(${r.num})">◎ Send reminder</button>
+        </div>
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+
+function toggleRule(num) {
+  const body = document.getElementById(`rulebody-${num}`);
+  const chev = document.getElementById(`chevron-${num}`);
+  const isOpen = body.classList.toggle('open');
+  chev.classList.toggle('open', isOpen);
+}
+
+function sendRuleReminder(num) {
+  const rule = RULES.find(r => r.num === num);
+  if (!rule) return;
+  sendNotification(`Rule ${rule.num}: ${rule.title}`, rule.body.substring(0, 100) + '...', 3000);
+  const card = document.getElementById(`rule-${num}`);
+  card.classList.add('reminded');
+  showSnackbar(`◎ Rule ${num} reminder sent`);
+}
+
+// ─── NOTIFICATIONS SETTINGS ───────────────────────────────────────────────
+
+function renderNotifSettings() {
+  const wrap = document.getElementById('notifSettings');
+  wrap.innerHTML = '';
+
+  const meals = NOTIF_SETTINGS.filter(n => ['wake','preworkout','postworkout','midmorning','lunch'].includes(n.id));
+  const water = NOTIF_SETTINGS.filter(n => n.id.startsWith('water'));
+  const other = NOTIF_SETTINGS.filter(n => !meals.includes(n) && !water.includes(n));
+
+  [['Meal reminders', meals], ['Water reminders', water], ['Habits & prep', other]].forEach(([title, items]) => {
+    const sec = document.createElement('div');
+    sec.className = 'notif-section';
+    sec.innerHTML = `<div class="notif-section-title">${title}</div>`;
+    items.forEach(n => {
+      const on = state.notifEnabled[n.id] !== false;
+      const item = document.createElement('div');
+      item.className = 'notif-item';
+      item.innerHTML = `
+        <div class="notif-icon">${n.emoji}</div>
+        <div class="notif-info">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-time">${n.time}</div>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle ${on ? 'on' : ''}" onclick="toggleNotif('${n.id}', this)"></div>
+        </div>`;
+      sec.appendChild(item);
+    });
+    wrap.appendChild(sec);
+  });
+}
+
+function toggleNotif(id, el) {
+  const isOn = el.classList.toggle('on');
+  state.notifEnabled[id] = isOn;
+  saveState();
+  if (isOn) scheduleAllNotifications();
+  showSnackbar(isOn ? '🔔 Notification enabled' : '🔕 Notification disabled');
+}
+
+// ─── NOTIFICATION ENGINE ──────────────────────────────────────────────────
+
+let swReg = null;
+
+async function registerSW() {
+  if ('serviceWorker' in navigator) {
+    try {
+      swReg = await navigator.serviceWorker.register('./sw.js');
+    } catch(e) { console.log('SW registration failed:', e); }
+  }
+}
+
+async function requestNotifPermission() {
+  if (!('Notification' in window)) { showSnackbar('Notifications not supported in this browser'); return; }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    document.getElementById('permBanner').style.display = 'none';
+    document.getElementById('notifDot').style.display = 'none';
+    showSnackbar('🔔 Notifications enabled!');
+    scheduleAllNotifications();
+  } else {
+    showSnackbar('Please enable notifications in Chrome settings');
+  }
+}
+
+function checkNotifPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    document.getElementById('permBanner').style.display = 'flex';
+    document.getElementById('notifDot').style.display = 'block';
+  }
+}
+
+function sendNotification(title, body, delay = 0, tag = null) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    showSnackbar(`🔔 ${title}`);
+    return;
+  }
+  if (swReg) {
+    swReg.active?.postMessage({ type: 'SCHEDULE_NOTIFICATION', title, body, delay, tag: tag || title });
+  } else {
+    setTimeout(() => {
+      new Notification(title, { body, icon: './icon-192.png', vibrate: [200, 100, 200] });
+    }, delay);
+  }
+}
+
+function scheduleAllNotifications() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date();
+  const dayType = getDayType();
+
+  const schedule = [
+    { id: 'wake', h: dayType === 'rest' ? 7 : dayType === 'yoga' ? 5 : 6, m: 45, title: '🌅 Time to wake up', body: 'Warm lemon water + soaked nuts. No phone for 20 min.' },
+    { id: 'preworkout', h: dayType === 'yoga' ? 6 : 6, m: dayType === 'yoga' ? 0 : 30, title: dayType === 'yoga' ? '🍌 Pre-yoga snack' : '🥜 Pre-workout meal', body: dayType === 'yoga' ? '1 banana before heading to yoga' : 'Banana + peanut butter + milk — 90 min before gym' },
+    { id: 'postworkout', h: dayType === 'yoga' ? 7 : 9, m: 30, title: '🥚 Post-workout protein window', body: 'Get eggs now. Eat within 45 min. This is your most important meal.' },
+    { id: 'midmorning', h: dayType === 'gym' ? 11 : 10, m: 0, title: '🫓 Mid-morning meal', body: '2 bhakri + sabzi + curd. Don\'t skip this — it closes the meal gap.' },
+    { id: 'water1', h: 10, m: 0, title: '💧 Water check', body: 'Should be at 3+ glasses by now. How are you tracking?' },
+    { id: 'lunch', h: 13, m: 15, title: '🍱 Lunch in 15 min', body: 'Salad first, then rotis. 150g paneer. Eat slowly.' },
+    { id: 'water2', h: 15, m: 0, title: '💧 Afternoon water check', body: 'Should be at 7+ glasses. Keep going — 3.5L target.' },
+    { id: 'snack', h: 16, m: 15, title: '🌱 Evening snack time', body: 'Sprouted moong / roasted chana / makhana + cashews' },
+    { id: 'dinner', h: 20, m: 0, title: '🍽️ Dinner reminder', body: 'Eat within 30 min. Dal or curd mandatory. Finish by 9pm.' },
+    { id: 'prep', h: 21, m: 30, title: '◈ Night prep time', body: 'Soak almonds + walnuts. Pack gym/yoga bag. Check tomorrow\'s plan.' },
+    { id: 'rule', h: 7, m: 0, title: `◐ Rule ${Math.floor(Math.random()*8)+1}`, body: RULES[Math.floor(Math.random()*8)].body.substring(0, 120) + '...' },
+    { id: 'bedtime', h: 22, m: 15, title: '🌙 Bedtime ritual', body: '250ml warm milk + turmeric. Sleep by 11pm — 7 hours is non-negotiable.' }
+  ];
+
+  schedule.forEach(s => {
+    if (state.notifEnabled[s.id] === false) return;
+    const target = new Date(now);
+    target.setHours(s.h, s.m, 0, 0);
+    const delay = target - now;
+    if (delay > 0 && delay < 24 * 60 * 60 * 1000) {
+      sendNotification(s.title, s.body, delay, s.id);
+    }
+  });
+}
+
+// ─── INSTALL PROMPT ───────────────────────────────────────────────────────
+
+function checkInstallPrompt() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  if (!isStandalone && isAndroid) {
+    document.getElementById('installBanner').style.display = 'block';
+  }
+}
+
+// ─── SCREEN NAV ───────────────────────────────────────────────────────────
+
+const screens = ['today', 'meals', 'prep', 'rules', 'notifications'];
+function showScreen(id) {
+  screens.forEach(s => {
+    document.getElementById('screen-' + s).style.display = s === id ? 'block' : 'none';
+    document.getElementById('nav-' + s)?.classList.toggle('active', s === id);
+  });
+}
+
+// ─── SNACKBAR ─────────────────────────────────────────────────────────────
+
+let snackTimer;
+function showSnackbar(msg) {
+  const el = document.getElementById('snackbar');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(snackTimer);
+  snackTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────
+
+registerSW().then(init);
+</script>
+</body>
+</html>
